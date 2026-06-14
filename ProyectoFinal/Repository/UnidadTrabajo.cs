@@ -19,6 +19,11 @@ namespace ProyectoFinal.Repository
             _db.SaveChanges();
         }
 
+        public async Task SaveAsync()
+        {
+            await _db.SaveChangesAsync();
+        }
+
         public void Dispose()
         {
             _db.Dispose();

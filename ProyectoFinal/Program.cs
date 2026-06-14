@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProyectoFinal.Data;
-using ProyectoFinal.Repository; 
+using ProyectoFinal.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,16 +37,15 @@ app.UseAuthorization();
 app.MapStaticAssets();
 
 // ruteo para las Áreas
-app.MapControllerRoute(
+app.MapAreaControllerRoute(
     name: "areas",
-    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    areaName: "Administracion",
+    pattern: "Administracion/{controller=Admin}/{action=Especialidades}/{id?}");
 
 // ruteo por defecto
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 // inicialización de roles
 using (var scope = app.Services.CreateScope())

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using ProyectoFinal.Repository; 
+using ProyectoFinal.Repository;
 
 namespace ProyectoFinal.Areas.Administracion.Controllers
 {
@@ -9,21 +10,48 @@ namespace ProyectoFinal.Areas.Administracion.Controllers
     public class AdminController : Controller
     {
         private readonly IUnidadTrabajo _unidadTrabajo;
-        public AdminController(IUnidadTrabajo unidadTrabajo)
+        private readonly UserManager<IdentityUser> _userManager;
+
+        public AdminController(IUnidadTrabajo unidadTrabajo, UserManager<IdentityUser> userManager)
         {
             _unidadTrabajo = unidadTrabajo;
+            _userManager = userManager;
         }
 
-        // GET: Administracion/Admin/Especialidades
+        // Especialidades
         public IActionResult Especialidades()
         {
-            var listaEspecialidades = _unidadTrabajo.Especialidad.GetAll();
+            var lista = _unidadTrabajo.Especialidad.GetAll();
+            return View(lista);
+        }
 
-            return View(listaEspecialidades);
+        [HttpGet]
+        public IActionResult CrearEspecialidad()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CrearEspecialidad(ProyectoFinal.Models.Especialidad especialidad)
+        {
+            if (ModelState.IsValid)
+            {
+                _unidadTrabajo.Especialidad.Add(especialidad);
+                await _unidadTrabajo.SaveAsync();
+                return RedirectToAction("Especialidades");
+            }
+            return View(especialidad);
+        }
+
+        // Usuarios
+        public IActionResult Usuarios()
+        {
+            var usuarios = _userManager.Users.ToList();
+            return View(usuarios);
         }
 
         public IActionResult Medicos() => View();
-        public IActionResult Usuarios() => View();
         public IActionResult Bloqueos() => View();
     }
 }

@@ -1,58 +1,51 @@
 ﻿@model IEnumerable<ProyectoFinal.Models.Especialidad>
 
 @{
-    ViewData["Title"] = "Gestión de Especialidades";
+    ViewData["Title"] = "Especialidades";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <h2 class="text-primary">Especialidades Médicas</h2>
-        </div>
-        <div class="col-md-6 text-end">
-            <a asp-action="CrearEspecialidad" class="btn btn-success">
-                + Agregar Nueva Especialidad
-            </a>
-        </div>
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Gestión de Especialidades</h2>
+        <a asp-area="Administracion" asp-controller="Admin" asp-action="CrearEspecialidad" class="btn btn-primary shadow-sm">
+            + Nueva Especialidad
+        </a>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            @if (Model != null && Model.Any())
-            {
-                <table class="table table-bordered table-striped table-hover mt-2">
-                    <thead class="table-dark text-center">
-                        <tr>
-                            <th>Nombre de la Especialidad</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Nombre</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td class="align-middle">@item.Nombre</td>
+                                <td class="ps-4 fw-bold">@item.Nombre</td>
                                 <td class="text-center">
-                                    <div class="btn-group" role="group">
-                                        <a asp-action="EditarEspecialidad" asp-route-id="@item.Id" class="btn btn-warning btn-sm mx-1">
-                                            Editar
-                                        </a>
-                                        <a asp-action="EliminarEspecialidad" asp-route-id="@item.Id" class="btn btn-danger btn-sm mx-1">
-                                            Eliminar
-                                        </a>
+                                    <div class="btn-group">
+                                        <a href="#" class="btn btn-sm btn-outline-warning">Editar</a>
+                                        <a href="#" class="btn btn-sm btn-outline-danger">Eliminar</a>
                                     </div>
                                 </td>
                             </tr>
                         }
-                    </tbody>
-                </table>
-            }
-            else
-            {
-                <div class="alert alert-info text-center mt-3">
-                    <strong>No hay especialidades registradas en el sistema.</strong>
-                </div>
-            }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="2" class="text-center py-4 text-muted">No hay registros</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

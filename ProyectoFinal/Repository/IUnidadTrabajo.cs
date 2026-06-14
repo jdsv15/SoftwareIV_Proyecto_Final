@@ -4,6 +4,8 @@
     {
         IEspecialidadRepository Especialidad { get; }
 
+        Task SaveAsync();
+
         void Guardar();
     }
 }
