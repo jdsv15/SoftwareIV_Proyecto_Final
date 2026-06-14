@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
 
 <!DOCTYPE html>
 <html lang="es">
@@ -11,38 +12,85 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
-    <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom mb-3">
-        <div class="container-fluid">
-            <a class="navbar-brand" asp-controller="Home" asp-action="Index">ProyectoFinal</a>
-            <div class="navbar-collapse collapse">
-                <ul class="navbar-nav flex-grow-1">
-                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Inicio</a></li>
-                </ul>
-                <ul class="navbar-nav">
-                    @if (SignInManager.IsSignedIn(User))
-                    {
-                        <li class="nav-item"><span class="nav-link text-dark">@User.Identity.Name</span></li>
-                        <li class="nav-item">
-                            <form asp-controller="Account" asp-action="Logout" method="post">
-                                <button type="submit" class="nav-link btn btn-link">Cerrar sesión</button>
-                            </form>
-                        </li>
-                    }
-                    else
-                    {
-                        <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Register">Registrarse</a></li>
-                        <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Login">Iniciar Sesión</a></li>
-                    }
-                </ul>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">ProyectoFinal</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Inicio</a></li>
+
+                        @if (User.IsInRole("Administrador"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Admin</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item en-proceso" href="#">Especialidades</a></li>
+                                    <li><a class="dropdown-item en-proceso" href="#">Médicos</a></li>
+                                    <li><a class="dropdown-item en-proceso" href="#">Usuarios</a></li>
+                                    <li><a class="dropdown-item en-proceso" href="#">Bloqueos</a></li>
+                                </ul>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("Medico") || User.IsInRole("Administrador"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Medicina</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item en-proceso" href="#">Pacientes</a></li>
+                                    <li><a class="dropdown-item en-proceso" href="#">Padecimientos</a></li>
+                                    <li><a class="dropdown-item en-proceso" href="#">Tratamientos</a></li>
+                                    <li><a class="dropdown-item en-proceso" href="#">Medicamentos</a></li>
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+
+                    <ul class="navbar-nav">
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            <li class="nav-item"><span class="nav-link text-dark">@User.Identity.Name</span></li>
+                            <li class="nav-item">
+                                <form asp-controller="Account" asp-action="Logout" method="post">
+                                    <button type="submit" class="nav-link btn btn-link">Cerrar sesión</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Register">Registrarse</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Login">Iniciar Sesión</a></li>
+                        }
+                    </ul>
+                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
+    </header>
+
     <div class="container">
         @if (TempData["MensajeExito"] != null)
         {
-            <script>Swal.fire({icon: 'success', title: '¡Éxito!', text: '@TempData["MensajeExito"]', timer: 2000, showConfirmButton: false});</script>
+            <script>Swal.fire({icon: 'success', title: 'Exito', text: '@TempData["MensajeExito"]', timer: 2000, showConfirmButton: false});</script>
         }
-        <main>@RenderBody()</main>
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
     </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Notificacion en proceso
+        document.querySelectorAll('.en-proceso').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('Funcionalidad en proceso...');
+            });
+        });
+    </script>
 </body>
 </html>
