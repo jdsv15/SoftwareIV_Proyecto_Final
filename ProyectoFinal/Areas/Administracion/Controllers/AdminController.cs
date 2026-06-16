@@ -1,57 +1,88 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using ProyectoFinal.Models;
 using ProyectoFinal.Repository;
 
 namespace ProyectoFinal.Areas.Administracion.Controllers
 {
     [Area("Administracion")]
-    [Authorize(Roles = "Administrador")]
     public class AdminController : Controller
     {
         private readonly IUnidadTrabajo _unidadTrabajo;
-        private readonly UserManager<IdentityUser> _userManager;
 
-        public AdminController(IUnidadTrabajo unidadTrabajo, UserManager<IdentityUser> userManager)
+        public AdminController(IUnidadTrabajo unidadTrabajo)
         {
             _unidadTrabajo = unidadTrabajo;
-            _userManager = userManager;
         }
 
-        // Especialidades
+        // GET: Lista de Especialidades
         public IActionResult Especialidades()
-        {
-            var lista = _unidadTrabajo.Especialidad.GetAll();
-            return View(lista);
-        }
-
-        [HttpGet]
-        public IActionResult CrearEspecialidad()
         {
             return View();
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CrearEspecialidad(ProyectoFinal.Models.Especialidad especialidad)
+        // GET: Upsert usuario entra mostrar
+        public IActionResult Upsert(int? id)
         {
-            if (ModelState.IsValid)
+            Especialidad especialidad = new Especialidad();
+
+            if (id == null || id == 0)  
             {
-                _unidadTrabajo.Especialidad.Add(especialidad);
-                await _unidadTrabajo.SaveAsync();
-                return RedirectToAction("Especialidades");
+                // Crear nueva especialidad
+                return View(especialidad);
+            }
+
+            // Editar especialidad existente
+            especialidad = _unidadTrabajo.Especialidad.Get(id.GetValueOrDefault());
+            if (especialidad == null)
+            {
+                return NotFound();
             }
             return View(especialidad);
         }
 
-        // Usuarios
-        public IActionResult Usuarios()
+        // POST: Upsert guardar
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Upsert(Especialidad especialidad)
         {
-            var usuarios = _userManager.Users.ToList();
-            return View(usuarios);
+            if (ModelState.IsValid)
+            {
+                if (especialidad.Id == 0)
+                {
+                    _unidadTrabajo.Especialidad.Add(especialidad);
+                }
+                else
+                {
+                    _unidadTrabajo.Especialidad.Update(especialidad);
+                }
+
+                _unidadTrabajo.Guardar();
+                return RedirectToAction(nameof(Especialidades));
+            }
+            return View(especialidad);
         }
 
-        public IActionResult Medicos() => View();
-        public IActionResult Bloqueos() => View();
+        #region API Endpoints para DataTables
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            var todos = _unidadTrabajo.Especialidad.GetAll();
+            return Json(new { data = todos });
+        }
+
+        [HttpDelete]
+        public IActionResult Delete(int id)
+        {
+            var objFromDb = _unidadTrabajo.Especialidad.Get(id);
+            if (objFromDb == null)
+            {
+                return Json(new { success = false, message = "Error al intentar borrar la especialidad" });
+            }
+
+            _unidadTrabajo.Especialidad.Remove(objFromDb);
+            _unidadTrabajo.Guardar();
+            return Json(new { success = true, message = "Especialidad eliminada correctamente" });
+        }
+        #endregion
     }
 }
