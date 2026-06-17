@@ -1,43 +1,93 @@
-﻿@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityUser>
-
+﻿@model IEnumerable<ProyectoFinal.Models.ApplicationUser>
 @{
-    ViewData["Title"] = "Usuarios";
+    ViewData["Title"] = "Gestión de Usuarios";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container mt-5">
-    <div class="mb-4">
-        <h2 class="fw-bold">Gestión de Usuarios</h2>
+    <div class="d-flex justify-content-between mb-4">
+        <h2>Gestión de Usuarios</h2>
+        <a asp-area="Administracion" asp-controller="Admin" asp-action="CrearUsuario" class="btn btn-primary">Nuevo Usuario</a>
     </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-4">Email</th>
-                        <th class="text-center">Nombre de Usuario</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        @foreach (var user in Model)
-                        {
-                            <tr>
-                                <td class="ps-4 fw-bold">@user.Email</td>
-                                <td class="text-center">@user.UserName</td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="2" class="text-center py-4 text-muted">No hay usuarios registrados</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
+    @Html.AntiForgeryToken()
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Cédula</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Perfil</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.Cedula</td>
+                    <td>@user.Nombre</td>
+                    <td>@user.Email</td>
+                    <td>@user.Rol</td>
+                    <td>
+                        <a asp-area="Administracion" asp-controller="Admin" asp-action="EditarUsuario" asp-route-id="@user.Id" class="btn btn-warning btn-sm">Editar</a>
+                        <button onclick="borrar('@user.Id')" class="btn btn-danger btn-sm">Borrar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 </div>
+
+@section Scripts {
+    <script>
+        @if (TempData["Success"] != null)
+        {
+                <text>
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Operación exitosa!',
+                        text: '@TempData["Success"]',
+                        confirmButtonColor: '#3085d6'
+                    });
+                </text>
+        }
+
+        function borrar(id) {
+            Swal.fire({
+                title: '¿Confirmar eliminación?',
+                text: "Esta acción no se puede deshacer.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, borrar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    var formData = new FormData();
+                    formData.append('id', id);
+                    formData.append('__RequestVerificationToken', token);
+
+                    fetch('/Administracion/Admin/DeleteUsuario', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.success) {
+                            Swal.fire('¡Éxito!', data.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire('Error', 'Ocurrió un problema de comunicación.', 'error');
+                    });
+                }
+            });
+        }
+    </script>
+}

@@ -1,89 +1,96 @@
-﻿@model IEnumerable<ProyectoFinal.Models.Especialidad>
-
-@{
+﻿@{
     ViewData["Title"] = "Especialidades";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/font/bootstrap-icons.css">
 
-<div class="container p-4">
-    <div class="row pb-3">
-        <div class="col-6">
-            <h2 class="text-primary">Lista de Especialidades</h2>
-        </div>
-        <div class="col-6 text-end">
-            <a asp-area="Administracion" asp-controller="Admin" asp-action="Upsert" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Crear Nueva Especialidad
-            </a>
-        </div>
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary fw-bold">Lista de Especialidades</h2>
+        <a asp-area="Administracion" asp-controller="Admin" asp-action="Upsert" class="btn btn-primary shadow-sm">
+            <i class="bi bi-plus-circle"></i> Nueva Especialidad
+        </a>
     </div>
 
-    <table class="table table-bordered table-striped" style="width:100%">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th class="text-center" style="width: 30%">Acciones</th>
-            </tr>
-        </thead>
-        <tbody id="tbodyEspecialidades">
-        </tbody>
-    </table>
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0" style="width:100%">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Nombre</th>
+                        <th class="text-center" style="width: 30%">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyEspecialidades">
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-
-<script>
-    $(document).ready(function () {
-        cargarEspecialidades();
-    });
-
-    // traer los datos desde el Controlador
-    function cargarEspecialidades() {
-        $.ajax({
-            url: '/Administracion/Admin/GetAll',
-            type: 'GET',
-            success: function (resultado) {
-                let filas = '';
-
-                $.each(resultado.data, function (index, especialidad) {
-                    filas += `
-                        <tr>
-                            <td>${especialidad.nombre}</td>
-                            <td class="text-center">
-                                <div class="btn-group" role="group">
-                                    <a href="/Administracion/Admin/Upsert?id=${especialidad.id}" class="btn btn-primary mx-2">
-                                        <i class="bi bi-pencil-square"></i> Editar
-                                    </a>
-                                    <button onClick="eliminarEspecialidad(${especialidad.id})" class="btn btn-danger mx-2">
-                                        <i class="bi bi-trash-fill"></i> Borrar
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>`;
-                });
-
-               
-                $('#tbodyEspecialidades').html(filas);
-            }
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            cargarEspecialidades();
         });
-    }
 
-    // eliminar un registro
-    function eliminarEspecialidad(id) {
-        if (confirm("¿Estás seguro de que deseas eliminar esta especialidad?")) {
+        function cargarEspecialidades() {
             $.ajax({
-                url: '/Administracion/Admin/Delete/' + id,
-                type: 'DELETE',
+                url: '/Administracion/Admin/GetAll',
+                type: 'GET',
                 success: function (resultado) {
-                    if (resultado.success) {
-                        // Si se borro refrescamos la lista
-                        cargarEspecialidades();
-                    } else {
-                        alert(resultado.message);
-                    }
+                    let filas = '';
+
+                    $.each(resultado.data, function (index, especialidad) {
+                        filas += `
+                            <tr>
+                                <td class="ps-4 fw-bold">${especialidad.nombre}</td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a href="/Administracion/Admin/Upsert?id=${especialidad.id}" class="btn btn-sm btn-outline-warning mx-1">
+                                            <i class="bi bi-pencil-square"></i> Editar
+                                        </a>
+                                        <button onClick="eliminarEspecialidad(${especialidad.id})" class="btn btn-sm btn-outline-danger mx-1">
+                                            <i class="bi bi-trash-fill"></i> Borrar
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>`;
+                    });
+
+                    $('#tbodyEspecialidades').html(filas);
                 }
             });
         }
-    }
-</script>
+
+        function eliminarEspecialidad(id) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "¡No podrás revertir esta acción!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, borrar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Administracion/Admin/Delete/' + id,
+                        type: 'DELETE',
+                        success: function (resultado) {
+                            if (resultado.success) {
+                                cargarEspecialidades(); 
+                                Swal.fire('¡Borrado!', resultado.message, 'success');
+                            } else {
+                                Swal.fire('Error', resultado.message, 'error');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

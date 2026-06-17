@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProyectoFinal.Data;
+using ProyectoFinal.Models;
 using ProyectoFinal.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,8 +11,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// Configuración de Identity
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+// Configuración de Identity usando ApplicationUser
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
@@ -38,9 +39,13 @@ app.MapStaticAssets();
 
 // ruteo para las Áreas
 app.MapAreaControllerRoute(
-    name: "areas",
+    name: "areaAdministracion",
     areaName: "Administracion",
     pattern: "Administracion/{controller=Admin}/{action=Especialidades}/{id?}");
+
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
 // ruteo por defecto
 app.MapControllerRoute(
@@ -51,7 +56,8 @@ app.MapControllerRoute(
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
     string[] roles = { "Administrador", "Medico", "Paciente" };
     foreach (var role in roles)

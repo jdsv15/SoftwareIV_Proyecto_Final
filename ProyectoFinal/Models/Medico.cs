@@ -26,7 +26,8 @@ namespace ProyectoFinal.Models
 
         [Required]
         public string UserId { get; set; } = string.Empty;
+
         [ForeignKey("UserId")]
-        public IdentityUser? User { get; set; }
+        public ApplicationUser? User { get; set; } 
     }
 }
