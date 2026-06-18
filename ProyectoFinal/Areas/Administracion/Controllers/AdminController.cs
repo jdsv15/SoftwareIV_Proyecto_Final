@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using ProyectoFinal.Models;
 using ProyectoFinal.Repository;
 
@@ -13,12 +15,14 @@ namespace ProyectoFinal.Areas.Administracion.Controllers
         private readonly IUnidadTrabajo _unidadTrabajo;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IWebHostEnvironment _hostEnvironment;
 
-        public AdminController(IUnidadTrabajo unidadTrabajo, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        public AdminController(IUnidadTrabajo unidadTrabajo, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IWebHostEnvironment hostEnvironment)
         {
             _unidadTrabajo = unidadTrabajo;
             _userManager = userManager;
             _roleManager = roleManager;
+            _hostEnvironment = hostEnvironment;
         }
 
         // ESPECIALIDADES
@@ -91,9 +95,20 @@ namespace ProyectoFinal.Areas.Administracion.Controllers
             {
                 user.UserName = user.Email;
                 var result = await _userManager.CreateAsync(user, password);
+
                 if (result.Succeeded)
                 {
-                    if (!string.IsNullOrEmpty(userRole)) await _userManager.AddToRoleAsync(user, userRole);
+                    if (!string.IsNullOrEmpty(userRole))
+                    {
+                        await _userManager.AddToRoleAsync(user, userRole);
+                    }
+
+                    if (userRole == "Medico")
+                    {
+                        TempData["Success"] = "Usuario creado. Por favor complete el perfil del Medico.";
+                        return RedirectToAction("UpsertMedico", new { userId = user.Id });
+                    }
+
                     TempData["Success"] = "Usuario creado exitosamente.";
                     return RedirectToAction(nameof(Usuarios));
                 }
@@ -133,6 +148,17 @@ namespace ProyectoFinal.Areas.Administracion.Controllers
                 var currentRoles = await _userManager.GetRolesAsync(usuario);
                 await _userManager.RemoveFromRolesAsync(usuario, currentRoles);
                 await _userManager.AddToRoleAsync(usuario, userRole);
+
+                if (userRole == "Medico")
+                {
+                    var perfilMedico = _unidadTrabajo.Medico.GetAll().FirstOrDefault(m => m.UserId == usuario.Id);
+                    if (perfilMedico == null)
+                    {
+                        TempData["Success"] = "Usuario actualizado. Por favor complete el perfil del Medico.";
+                        return RedirectToAction("UpsertMedico", new { userId = usuario.Id });
+                    }
+                }
+
                 TempData["Success"] = "Usuario actualizado exitosamente.";
                 return RedirectToAction(nameof(Usuarios));
             }
@@ -155,6 +181,105 @@ namespace ProyectoFinal.Areas.Administracion.Controllers
             return result.Succeeded
                 ? Json(new { success = true, message = "Usuario eliminado correctamente." })
                 : Json(new { success = false, message = "Error al eliminar el usuario." });
+        }
+
+        // MÉDICOS
+        [HttpGet]
+        public async Task<IActionResult> Medicos()
+        {
+            var usuariosMedicos = await _userManager.GetUsersInRoleAsync("Medico");
+            var perfilesMedicos = _unidadTrabajo.Medico.GetAll().ToList();
+
+            ViewBag.Perfiles = perfilesMedicos;
+
+            return View(usuariosMedicos);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> UpsertMedico(int? id, string? userId)
+        {
+            MedicoViewModel medicoVM = new MedicoViewModel()
+            {
+                Medico = new Medico(),
+                EspecialidadLista = _unidadTrabajo.Especialidad.GetAll().Select(e => new SelectListItem
+                {
+                    Text = e.Nombre,
+                    Value = e.Id.ToString()
+                })
+            };
+
+            if (id == null || id == 0)
+            {
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    medicoVM.Medico.UserId = userId;
+                    var user = await _userManager.FindByIdAsync(userId);
+                    ViewBag.NombreUsuario = user?.Nombre;
+                }
+                return View(medicoVM);
+            }
+
+            medicoVM.Medico = _unidadTrabajo.Medico.Get(id.GetValueOrDefault());
+            if (medicoVM.Medico == null) return NotFound();
+
+            return View(medicoVM);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UpsertMedico(MedicoViewModel medicoVM, IFormFile? file)
+        {
+            ModelState.Remove("Medico.User");
+
+            if (ModelState.IsValid)
+            {
+                string wwwRootPath = _hostEnvironment.WebRootPath;
+                if (file != null)
+                {
+                    string fileName = Guid.NewGuid().ToString();
+                    var uploads = Path.Combine(wwwRootPath, @"imagenes\medicos");
+                    var extension = Path.GetExtension(file.FileName);
+
+                    if (!Directory.Exists(uploads)) Directory.CreateDirectory(uploads);
+
+                    if (medicoVM.Medico.Fotografia != null)
+                    {
+                        var oldImagePath = Path.Combine(wwwRootPath, medicoVM.Medico.Fotografia.TrimStart('\\'));
+                        if (System.IO.File.Exists(oldImagePath)) System.IO.File.Delete(oldImagePath);
+                    }
+
+                    using (var fileStreams = new FileStream(Path.Combine(uploads, fileName + extension), FileMode.Create))
+                    {
+                        file.CopyTo(fileStreams);
+                    }
+                    medicoVM.Medico.Fotografia = @"\imagenes\medicos\" + fileName + extension;
+                }
+
+                var especialidadesDB = _unidadTrabajo.Especialidad.GetAll()
+                                        .Where(e => medicoVM.EspecialidadesId.Contains(e.Id)).ToList();
+                medicoVM.Medico.Especialidades = especialidadesDB;
+
+                if (medicoVM.Medico.Id == 0)
+                {
+                    _unidadTrabajo.Medico.Add(medicoVM.Medico);
+                    TempData["Success"] = "Perfil médico completado exitosamente.";
+                }
+                else
+                {
+                    _unidadTrabajo.Medico.Actualizar(medicoVM.Medico);
+                    TempData["Success"] = "Perfil médico actualizado exitosamente.";
+                }
+
+                _unidadTrabajo.Guardar();
+                return RedirectToAction(nameof(Medicos));
+            }
+
+            medicoVM.EspecialidadLista = _unidadTrabajo.Especialidad.GetAll().Select(e => new SelectListItem
+            {
+                Text = e.Nombre,
+                Value = e.Id.ToString()
+            });
+            return View(medicoVM);
         }
     }
 }

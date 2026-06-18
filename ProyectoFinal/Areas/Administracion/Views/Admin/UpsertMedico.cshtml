@@ -1,0 +1,87 @@
+﻿@model ProyectoFinal.Models.MedicoViewModel
+
+@{
+    var titulo = Model.Medico.Id == 0 ? "Completar Perfil Médico" : "Editar Perfil Médico";
+    ViewData["Title"] = titulo;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h2 class="text-primary fw-bold">@titulo</h2>
+                    @if (ViewBag.NombreUsuario != null)
+                    {
+                        <h5 class="text-muted">Usuario: @ViewBag.NombreUsuario</h5>
+                    }
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden" asp-for="Medico.Id" />
+                        <input type="hidden" asp-for="Medico.UserId" />
+                        @if (Model.Medico.Fotografia != null)
+                        {
+                            <input type="hidden" asp-for="Medico.Fotografia" />
+                        }
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger fw-bold mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Medico.NumeroColegiado" class="form-label"></label>
+                            <input asp-for="Medico.NumeroColegiado" class="form-control" placeholder="Ej: 12345-MED" />
+                            <span asp-validation-for="Medico.NumeroColegiado" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Especialidades (Mantenga presionada la tecla Ctrl para seleccionar varias)</label>
+                            <select asp-for="EspecialidadesId" asp-items="@Model.EspecialidadLista" class="form-select" multiple style="height: 150px;" required>
+                            </select>
+                            <span asp-validation-for="EspecialidadesId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Fotografía del Médico</label>
+                            <input type="file" name="file" id="uploadBox" class="form-control" accept="image/*" />
+
+                            @if (Model.Medico.Fotografia != null)
+                            {
+                                <div class="mt-3">
+                                    <p class="text-muted mb-1">Fotografía actual:</p>
+                                    <img src="@Model.Medico.Fotografia" alt="Foto del Médico" class="img-thumbnail" style="max-width: 150px;" />
+                                </div>
+                            }
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-block">
+                            <button type="submit" class="btn btn-primary px-4">Guardar Perfil</button>
+                            <a asp-area="Administracion" asp-controller="Admin" asp-action="Usuarios" class="btn btn-outline-secondary px-4">Volver a Usuarios</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.querySelector("form").addEventListener("submit", function (e) {
+            var id = document.getElementById("Medico_Id").value;
+            var fileInput = document.getElementById("uploadBox").value;
+
+            if (id == "0" && fileInput == "") {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Por favor, suba una fotografía para el médico.'
+                });
+            }
+        });
+    </script>
+}

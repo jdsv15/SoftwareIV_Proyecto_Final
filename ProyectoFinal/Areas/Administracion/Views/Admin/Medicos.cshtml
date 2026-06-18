@@ -1,0 +1,78 @@
+﻿@model IEnumerable<ProyectoFinal.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "Gestión de Médicos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var perfiles = ViewBag.Perfiles as List<ProyectoFinal.Models.Medico>;
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between mb-4">
+        <h2>Gestión de Médicos</h2>
+        <a asp-area="Administracion" asp-controller="Admin" asp-action="CrearUsuario" class="btn btn-primary">Nuevo Médico</a>
+    </div>
+
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Estado del Perfil</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                var perfilMedico = perfiles?.FirstOrDefault(p => p.UserId == user.Id);
+
+                <tr>
+                    <td>@user.Nombre</td>
+                    <td>@user.Email</td>
+                    <td>
+                        @if (perfilMedico != null)
+                        {
+                            <span class="badge bg-success">Perfil Completo</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Perfil Incompleto</span>
+                        }
+                    </td>
+                    <td>
+                        @if (perfilMedico != null)
+                        {
+                            <a asp-area="Administracion" asp-controller="Admin" asp-action="UpsertMedico" asp-route-id="@perfilMedico.Id" class="btn btn-warning btn-sm">Editar Perfil</a>
+
+                            @if (!string.IsNullOrEmpty(perfilMedico.Fotografia))
+                            {
+                                <button onclick="mostrarImagen('@perfilMedico.Fotografia.Replace("\\", "/")')" class="btn btn-outline-dark btn-sm ms-2" title="Ver Fotografía">
+                                    <i class="bi bi-person-bounding-box"></i>
+                                </button>
+                            }
+                        }
+                        else
+                        {
+                            <a asp-area="Administracion" asp-controller="Admin" asp-action="UpsertMedico" asp-route-userId="@user.Id" class="btn btn-info btn-sm text-white">Completar Perfil</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        function mostrarImagen(url) {
+            Swal.fire({
+                title: 'Fotografía del Médico',
+                imageUrl: url,
+                imageWidth: 300,
+                imageAlt: 'Foto del médico',
+                confirmButtonText: 'Cerrar',
+                confirmButtonColor: '#3085d6'
+            });
+        }
+    </script>
+}

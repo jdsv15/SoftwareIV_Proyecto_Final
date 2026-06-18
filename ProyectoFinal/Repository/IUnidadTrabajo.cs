@@ -4,6 +4,8 @@
     {
         IEspecialidadRepository Especialidad { get; }
 
+        IMedicoRepositorio Medico { get; }
+
         Task SaveAsync();
 
         void Guardar();
