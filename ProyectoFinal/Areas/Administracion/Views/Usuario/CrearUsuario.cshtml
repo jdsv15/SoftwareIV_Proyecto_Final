@@ -13,7 +13,7 @@
                     <h2 class="text-primary fw-bold">Registrar Nuevo Usuario</h2>
                 </div>
                 <div class="card-body p-4">
-                    <form asp-area="Administracion" asp-controller="Admin" asp-action="CrearUsuario" method="post">
+                    <form asp-area="Administracion" asp-controller="Usuario" asp-action="CrearUsuario" method="post">
                         @Html.AntiForgeryToken()
                         <div asp-validation-summary="All" class="text-danger fw-bold mb-3"></div>
 
@@ -58,7 +58,7 @@
 
                         <div class="d-grid gap-2 d-md-block">
                             <button type="submit" class="btn btn-primary px-4">Guardar Usuario</button>
-                            <a asp-area="Administracion" asp-controller="Admin" asp-action="Usuarios" class="btn btn-outline-secondary px-4">Volver</a>
+                            <a asp-area="Administracion" asp-controller="Usuario" asp-action="Index" class="btn btn-outline-secondary px-4">Volver</a>
                         </div>
                     </form>
                 </div>

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using ProyectoFinal.Models; 
+using ProyectoFinal.Models;
 using ProyectoFinal.ViewModels;
 
 namespace ProyectoFinal.Controllers
@@ -20,7 +20,7 @@ namespace ProyectoFinal.Controllers
         public IActionResult Register() => View();
 
         [HttpPost]
-        [ValidateAntiForgeryToken] 
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegistroViewModel model)
         {
             if (!ModelState.IsValid) return View(model);
@@ -65,6 +65,12 @@ namespace ProyectoFinal.Controllers
             {
                 TempData["MensajeExito"] = "Sesion iniciada correctamente!";
                 return RedirectToAction("Index", "Home");
+            }
+
+            if (result.IsLockedOut)
+            {
+                ModelState.AddModelError("", "Esta cuenta ha sido bloqueada. Contacte a un administrador.");
+                return View(model);
             }
 
             ModelState.AddModelError("", "Intento de inicio de sesión no valido.");

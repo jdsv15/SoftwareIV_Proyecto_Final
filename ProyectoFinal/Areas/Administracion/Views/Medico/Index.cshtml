@@ -9,7 +9,7 @@
 <div class="container mt-5">
     <div class="d-flex justify-content-between mb-4">
         <h2>Gestión de Médicos</h2>
-        <a asp-area="Administracion" asp-controller="Admin" asp-action="CrearUsuario" class="btn btn-primary">Nuevo Médico</a>
+        <a asp-area="Administracion" asp-controller="Usuario" asp-action="CrearUsuario" class="btn btn-primary">Nuevo Médico</a>
     </div>
 
     <table class="table align-middle">
@@ -42,7 +42,7 @@
                     <td>
                         @if (perfilMedico != null)
                         {
-                            <a asp-area="Administracion" asp-controller="Admin" asp-action="UpsertMedico" asp-route-id="@perfilMedico.Id" class="btn btn-warning btn-sm">Editar Perfil</a>
+                            <a asp-area="Administracion" asp-controller="Medico" asp-action="UpsertMedico" asp-route-id="@perfilMedico.Id" class="btn btn-warning btn-sm">Editar Perfil</a>
 
                             @if (!string.IsNullOrEmpty(perfilMedico.Fotografia))
                             {
@@ -53,7 +53,7 @@
                         }
                         else
                         {
-                            <a asp-area="Administracion" asp-controller="Admin" asp-action="UpsertMedico" asp-route-userId="@user.Id" class="btn btn-info btn-sm text-white">Completar Perfil</a>
+                            <a asp-area="Administracion" asp-controller="Medico" asp-action="UpsertMedico" asp-route-userId="@user.Id" class="btn btn-info btn-sm text-white">Completar Perfil</a>
                         }
                     </td>
                 </tr>

@@ -18,7 +18,7 @@
                     }
                 </div>
                 <div class="card-body p-4">
-                    <form method="post" enctype="multipart/form-data">
+                    <form asp-area="Administracion" asp-controller="Medico" asp-action="UpsertMedico" method="post" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
 
                         <input type="hidden" asp-for="Medico.Id" />
@@ -58,7 +58,7 @@
 
                         <div class="d-grid gap-2 d-md-block">
                             <button type="submit" class="btn btn-primary px-4">Guardar Perfil</button>
-                            <a asp-area="Administracion" asp-controller="Admin" asp-action="Usuarios" class="btn btn-outline-secondary px-4">Volver a Usuarios</a>
+                            <a asp-area="Administracion" asp-controller="Medico" asp-action="Index" class="btn btn-outline-secondary px-4">Volver a Médicos</a>
                         </div>
                     </form>
                 </div>

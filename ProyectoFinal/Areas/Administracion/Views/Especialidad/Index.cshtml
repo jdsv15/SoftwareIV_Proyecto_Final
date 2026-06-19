@@ -8,7 +8,7 @@
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-primary fw-bold">Lista de Especialidades</h2>
-        <a asp-area="Administracion" asp-controller="Admin" asp-action="Upsert" class="btn btn-primary shadow-sm">
+        <a asp-area="Administracion" asp-controller="Especialidad" asp-action="Upsert" class="btn btn-primary shadow-sm">
             <i class="bi bi-plus-circle"></i> Nueva Especialidad
         </a>
     </div>
@@ -38,7 +38,7 @@
 
         function cargarEspecialidades() {
             $.ajax({
-                url: '/Administracion/Admin/GetAll',
+                url: '/Administracion/Especialidad/GetAll',
                 type: 'GET',
                 success: function (resultado) {
                     let filas = '';
@@ -49,7 +49,7 @@
                                 <td class="ps-4 fw-bold">${especialidad.nombre}</td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group">
-                                        <a href="/Administracion/Admin/Upsert?id=${especialidad.id}" class="btn btn-sm btn-outline-warning mx-1">
+                                        <a href="/Administracion/Especialidad/Upsert?id=${especialidad.id}" class="btn btn-sm btn-outline-warning mx-1">
                                             <i class="bi bi-pencil-square"></i> Editar
                                         </a>
                                         <button onClick="eliminarEspecialidad(${especialidad.id})" class="btn btn-sm btn-outline-danger mx-1">
@@ -78,11 +78,11 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: '/Administracion/Admin/Delete/' + id,
+                        url: '/Administracion/Especialidad/Delete/' + id,
                         type: 'DELETE',
                         success: function (resultado) {
                             if (resultado.success) {
-                                cargarEspecialidades(); 
+                                cargarEspecialidades();
                                 Swal.fire('¡Borrado!', resultado.message, 'success');
                             } else {
                                 Swal.fire('Error', resultado.message, 'error');

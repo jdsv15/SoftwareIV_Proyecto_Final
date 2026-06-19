@@ -1,0 +1,106 @@
+﻿@model IEnumerable<ProyectoFinal.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "Gestión de Bloqueos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between mb-4">
+        <h2>Gestión de Bloqueos</h2>
+    </div>
+
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                var isBlocked = item.LockoutEnd != null && item.LockoutEnd > DateTime.Now;
+                <tr>
+                    <td>@item.Nombre</td>
+                    <td>@item.Email</td>
+                    <td>@item.Rol</td>
+                    <td>
+                        @if (isBlocked)
+                        {
+                            <span class="badge bg-danger" id="badge-@item.Id">Bloqueado</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success" id="badge-@item.Id">Activo</span>
+                        }
+                    </td>
+                    <td>
+                        <form id="form-@item.Id" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            @if (isBlocked)
+                            {
+                                <button type="button" class="btn btn-success btn-sm" onclick="toggleBloqueo('@item.Id')" id="btn-@item.Id">
+                                    <i class="bi bi-unlock-fill"></i> Desbloquear
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-danger btn-sm" onclick="toggleBloqueo('@item.Id')" id="btn-@item.Id">
+                                    <i class="bi bi-lock-fill"></i> Bloquear
+                                </button>
+                            }
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleBloqueo(id) {
+            const form = document.getElementById(`form-${id}`);
+            const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('__RequestVerificationToken', token);
+
+            fetch('/Administracion/Usuario/BloquearDesbloquear', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Ocurrió un problema en la conexión con el servidor.'
+                });
+            });
+        }
+    </script>
+}
