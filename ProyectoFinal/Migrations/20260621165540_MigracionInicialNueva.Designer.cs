@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProyectoFinal.Data;
 
@@ -11,9 +12,11 @@ using ProyectoFinal.Data;
 namespace ProyectoFinal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260621165540_MigracionInicialNueva")]
+    partial class MigracionInicialNueva
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -392,6 +395,7 @@ namespace ProyectoFinal.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("MedicoId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Nombre")
@@ -399,14 +403,9 @@ namespace ProyectoFinal.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("UsuarioId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("MedicoId");
-
-                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Paciente");
                 });
@@ -660,16 +659,10 @@ namespace ProyectoFinal.Migrations
                     b.HasOne("ProyectoFinal.Models.ApplicationUser", "Medico")
                         .WithMany()
                         .HasForeignKey("MedicoId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("ProyectoFinal.Models.ApplicationUser", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Medico");
-
-                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("ProyectoFinal.Models.PacienteMedicamento", b =>

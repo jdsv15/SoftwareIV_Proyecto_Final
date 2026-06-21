@@ -18,7 +18,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 builder.Services.AddScoped<IUnidadTrabajo, UnidadTrabajo>();
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 
 var app = builder.Build();
 
@@ -31,13 +31,13 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
-// Mapeo de seguridad (Autenticación y Autorización)
+// Seguridad Autenticacion
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
 
-// ruteo para las Áreas
+// Ruteo para las Áreas
 app.MapAreaControllerRoute(
     name: "areaAdministracion",
     areaName: "Administracion",
@@ -47,18 +47,18 @@ app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-// ruteo por defecto
+// Ruteo por defecto
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// inicialización de roles
+// Inicializacion y Semillero de Datos (Seeding)
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
+    // Roles
     string[] roles = { "Administrador", "Medico", "Paciente" };
     foreach (var role in roles)
     {
@@ -66,8 +66,30 @@ using (var scope = app.Services.CreateScope())
             await roleManager.CreateAsync(new IdentityRole(role));
     }
 
-    var adminUser = await userManager.FindByEmailAsync("ejemplo@gmail.com");
-    if (adminUser != null)
+    // Crear usuario Administrador por defecto si no existe
+    var adminEmail = "admin@gmail.com";
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+    if (adminUser == null)
+    {
+        var nuevoAdmin = new ApplicationUser
+        {
+            UserName = adminEmail,
+            Email = adminEmail,
+            Nombre = "Admin", 
+            Cedula = "1",               
+            Rol = "Administrador",
+            EmailConfirmed = true
+        };
+
+        var result = await userManager.CreateAsync(nuevoAdmin, "Admin1234!");
+
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(nuevoAdmin, "Administrador");
+        }
+    }
+    else
     {
         if (!await userManager.IsInRoleAsync(adminUser, "Administrador"))
         {

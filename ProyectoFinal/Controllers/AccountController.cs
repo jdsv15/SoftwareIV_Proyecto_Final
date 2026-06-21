@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ProyectoFinal.Models;
+using ProyectoFinal.Repository;
 using ProyectoFinal.ViewModels;
 
 namespace ProyectoFinal.Controllers
@@ -9,11 +10,15 @@ namespace ProyectoFinal.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IUnidadTrabajo _unidadTrabajo;
 
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public AccountController(UserManager<ApplicationUser> userManager,
+                                 SignInManager<ApplicationUser> signInManager,
+                                 IUnidadTrabajo unidadTrabajo)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _unidadTrabajo = unidadTrabajo;
         }
 
         [HttpGet]
@@ -39,8 +44,18 @@ namespace ProyectoFinal.Controllers
             {
                 await _userManager.AddToRoleAsync(user, "Paciente");
 
+                var nuevoPaciente = new Paciente
+                {
+                    Nombre = model.Nombre,          
+                    Cedula = model.Cedula,     
+                    FechaNacimiento = DateTime.Now 
+                };
+
+                _unidadTrabajo.Paciente.Add(nuevoPaciente);
+                _unidadTrabajo.Guardar();
+
                 await _signInManager.SignInAsync(user, isPersistent: false);
-                TempData["MensajeExito"] = "Cuenta creada exitosamente!";
+                TempData["MensajeExito"] = "Cuenta creada y paciente registrado exitosamente!";
                 return RedirectToAction("Index", "Home");
             }
 
@@ -73,7 +88,7 @@ namespace ProyectoFinal.Controllers
                 return View(model);
             }
 
-            ModelState.AddModelError("", "Intento de inicio de sesión no valido.");
+            ModelState.AddModelError("", "Intento de inicio de sesión no válido.");
             return View(model);
         }
 
