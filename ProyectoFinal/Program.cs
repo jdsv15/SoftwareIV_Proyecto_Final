@@ -30,24 +30,23 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
-// Mapeo de seguridad (Autenticación y Autorización)
+//seguridad Autenticacion
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
 
-// ruteo para las Áreas
-app.MapAreaControllerRoute(
-    name: "areas",
-    areaName: "Administracion",
-    pattern: "Administracion/{controller=Admin}/{action=Especialidades}/{id?}");
 
-// ruteo por defecto
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// inicialización de roles
+// inicializacion
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();

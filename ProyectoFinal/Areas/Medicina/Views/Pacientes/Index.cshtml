@@ -1,0 +1,61 @@
+﻿@model IEnumerable<ProyectoFinal.Models.Paciente>
+
+@{
+    ViewData["Title"] = "Listado de Pacientes";
+}
+
+<div class="container p-3">
+    <div class="row pt-4">
+        <div class="col-6">
+            <h2 class="text-primary">Directorio de Pacientes</h2>
+        </div>
+        <div class="col-6 text-end">
+            @* Aquí podrías agregar un botón de "Nuevo Paciente" si el sistema requiere crearlos desde esta pantalla *@
+        </div>
+    </div>
+
+    <form method="get" asp-action="Index" class="mb-4 mt-3">
+        <div class="input-group">
+            <input type="text" name="busqueda" class="form-control" placeholder="Buscar por nombre, apellidos o cédula..." value="@Context.Request.Query["busqueda"]" />
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+        </div>
+    </form>
+
+    <table class="table table-bordered table-striped" style="width:100%">
+        <thead>
+            <tr>
+                <th>Cédula</th>
+                <th>Nombre Completo</th>
+                <th>Última Atención</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Cedula</td>
+                        <td>@item.Nombre @item.Apellidos</td>
+                        <td>
+                            @(item.FechaUltimaAtencion.HasValue? item.FechaUltimaAtencion.Value.ToString("dd/MM/yyyy") : "Sin atenciones previas")
+                        </td>
+                        <td>
+                            <a asp-action="Expediente" asp-route-id="@item.Id" class="btn btn-info mx-2" style="color: white;">
+                                <i class="bi bi-folder2-open"></i> Ver Expediente
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="4" class="text-center">No se encontraron pacientes que coincidan con la búsqueda.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

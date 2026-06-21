@@ -1,0 +1,489 @@
+﻿@model ProyectoFinal.Models.ViewModels.ExpedienteVM
+
+@{
+    ViewData["Title"] = "Expediente Clínico";
+}
+
+<div class="container p-3">
+    <div class="row pt-4 mb-4">
+        <div class="col-6">
+            <h2 class="text-primary"><i class="bi bi-folder2-open"></i> Expediente Médico</h2>
+        </div>
+        <div class="col-6 text-end">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left-circle"></i> Volver al Directorio
+            </a>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm border-0 bg-light">
+        <div class="card-header bg-primary text-white py-3">
+            <h5 class="card-title mb-0 fw-bold">Paciente: @Model.Paciente.Nombre @Model.Paciente.Apellidos</h5>
+        </div>
+        <div class="card-body py-4">
+            <div class="row">
+                <div class="col-md-4">
+                    <p class="mb-1 text-muted small text-uppercase fw-bold">Cédula de Identidad</p>
+                    <p class="fs-5 fw-semibold text-dark">@Model.Paciente.Cedula</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1 text-muted small text-uppercase fw-bold">Teléfono de Contacto</p>
+                    <p class="fs-5 fw-semibold text-dark">@(string.IsNullOrEmpty(Model.Paciente.Telefono) ? "No registrado" : Model.Paciente.Telefono)</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1 text-muted small text-uppercase fw-bold">Fecha de Nacimiento</p>
+                    <p class="fs-5 fw-semibold text-dark">@Model.Paciente.FechaNacimiento.ToString("dd/MM/yyyy")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs" id="expedienteTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial" type="button" role="tab" aria-controls="historial" aria-selected="true">Historial Clínico</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="padecimientos-tab" data-bs-toggle="tab" data-bs-target="#padecimientos" type="button" role="tab" aria-controls="padecimientos" aria-selected="false">Padecimientos</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="tratamientos-tab" data-bs-toggle="tab" data-bs-target="#tratamientos" type="button" role="tab" aria-controls="tratamientos" aria-selected="false">Tratamientos</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="medicamentos-tab" data-bs-toggle="tab" data-bs-target="#medicamentos" type="button" role="tab" aria-controls="medicamentos" aria-selected="false">Medicamentos</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="archivos-tab" data-bs-toggle="tab" data-bs-target="#archivos" type="button" role="tab" aria-controls="archivos" aria-selected="false">Archivos Adjuntos</button>
+        </li>
+    </ul>
+
+    <div class="tab-content border border-top-0 p-4 bg-white shadow-sm rounded-bottom" id="expedienteTabsContent">
+
+        <div class="tab-pane fade show active" id="historial" role="tabpanel" aria-labelledby="historial-tab">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="text-secondary mb-0">Notas de Evolución Médica</h5>
+                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalNuevaNota">
+                    <i class="bi bi-plus-circle"></i> Nueva Nota de Atención
+                </button>
+            </div>
+
+            @if (Model.Historial != null && Model.Historial.Any())
+            {
+                foreach (var nota in Model.Historial)
+                {
+                    <div class="card mb-3 border-start border-primary border-4 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between text-muted small mb-2">
+                                <span><i class="bi bi-calendar3"></i> <strong>Fecha:</strong> @nota.FechaHora.ToString("dd/MM/yyyy hh:mm tt")</span>
+                            </div>
+                            <div class="card-text text-dark">
+                                @Html.Raw(nota.Notas)
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-light text-center border py-4">No hay notas registradas en el historial de este paciente.</div>
+            }
+        </div>
+
+        <div class="tab-pane fade" id="padecimientos" role="tabpanel" aria-labelledby="padecimientos-tab">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="text-secondary mb-0">Historial de Padecimientos / Diagnósticos</h5>
+                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoPadecimiento">
+                    <i class="bi bi-plus-circle"></i> Asignar Padecimiento
+                </button>
+            </div>
+            <table class="table table-hover border align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Padecimiento</th>
+                        <th>Fecha Diagnóstico</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Padecimientos != null && Model.Padecimientos.Any())
+                    {
+                        foreach (var pad in Model.Padecimientos)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@pad.Padecimiento.Nombre</td>
+                                <td>@pad.FechaDiagnostico.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <span class="badge @(pad.Activo ? "bg-success" : "bg-danger")">
+                                        @(pad.Activo ? "Activo" : "Suspendido")
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    @if (pad.Activo)
+                                    {
+                                        <form asp-action="SuspenderPadecimiento" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@pad.Id" />
+                                            <input type="hidden" name="pacienteId" value="@Model.Paciente.Id" />
+                                            <button type="button" class="btn btn-outline-danger btn-sm btn-suspender">Suspender</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-3">Sin padecimientos diagnosticados actualmente.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tab-pane fade" id="tratamientos" role="tabpanel" aria-labelledby="tratamientos-tab">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="text-secondary mb-0">Tratamientos Clínicos Asignados</h5>
+                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoTratamiento">
+                    <i class="bi bi-plus-circle"></i> Asignar Tratamiento
+                </button>
+            </div>
+            <table class="table table-hover border align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tratamiento</th>
+                        <th>Fecha de Asignación</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Tratamientos != null && Model.Tratamientos.Any())
+                    {
+                        foreach (var trat in Model.Tratamientos)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@trat.Tratamiento.Nombre</td>
+                                <td>@trat.FechaAsignacion.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <span class="badge @(trat.Activo ? "bg-success" : "bg-danger")">
+                                        @(trat.Activo ? "Activo" : "Suspendido")
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    @if (trat.Activo)
+                                    {
+                                        <form asp-action="SuspenderTratamiento" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@trat.Id" />
+                                            <input type="hidden" name="pacienteId" value="@Model.Paciente.Id" />
+                                            <button type="button" class="btn btn-outline-danger btn-sm btn-suspender">Suspender</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-3">Sin tratamientos terapéuticos asignados.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tab-pane fade" id="medicamentos" role="tabpanel" aria-labelledby="medicamentos-tab">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="text-secondary mb-0">Medicamentos y Prescripciones</h5>
+                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoMedicamento">
+                    <i class="bi bi-plus-circle"></i> Recetar Medicamento
+                </button>
+            </div>
+            <table class="table table-hover border align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Medicamento</th>
+                        <th>Fecha de Prescripción</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Medicamentos != null && Model.Medicamentos.Any())
+                    {
+                        foreach (var med in Model.Medicamentos)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@med.Medicamento.Nombre</td>
+                                <td>@med.FechaAsignacion.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <span class="badge @(med.Activo ? "bg-success" : "bg-danger")">
+                                        @(med.Activo ? "Activo" : "Suspendido")
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    @if (med.Activo)
+                                    {
+                                        <form asp-action="SuspenderMedicamento" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@med.Id" />
+                                            <input type="hidden" name="pacienteId" value="@Model.Paciente.Id" />
+                                            <button type="button" class="btn btn-outline-danger btn-sm btn-suspender">Suspender</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-3">No hay registros de medicamentos recetados.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tab-pane fade" id="archivos" role="tabpanel" aria-labelledby="archivos-tab">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="text-secondary mb-0">Exámenes de Laboratorio y Documentos Adjuntos</h5>
+                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalSubirArchivo">
+                    <i class="bi bi-upload"></i> Subir Documento
+                </button>
+            </div>
+            <table class="table table-hover border align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Descripción</th>
+                        <th>Fecha de Carga</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Archivos != null && Model.Archivos.Any())
+                    {
+                        foreach (var archivo in Model.Archivos)
+                        {
+                            <tr>
+                                <td>@archivo.Descripcion</td>
+                                <td>@archivo.FechaSubida.ToString("dd/MM/yyyy")</td>
+                                <td class="text-center">
+                                    <a href="@archivo.UrlArchivo" target="_blank" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-eye"></i> Visualizar Archivo
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-3">No se han cargado documentos externos en este expediente.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="modalNuevaNota" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form asp-action="AgregarNotaHistorial" method="post">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-journal-medical"></i> Redactar Nota de Evolución</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="pacienteId" value="@Model.Paciente.Id" />
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">Evolución Clínica y Observaciones</label>
+                        <textarea name="notas" id="editorNotas" class="form-control" rows="15"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Guardar en Historial</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalNuevoPadecimiento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="AgregarPadecimiento" method="post">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-heart-pulse"></i> Asignar Padecimiento</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="pacienteId" value="@Model.Paciente.Id" />
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">Seleccione el Diagnóstico</label>
+                        <select name="padecimientoId" class="form-select" asp-items="ViewBag.CatalogoPadecimientos" required>
+                            <option value="">-- Seleccione una opción --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalNuevoTratamiento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="AgregarTratamiento" method="post">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-bandaid"></i> Asignar Tratamiento</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="pacienteId" value="@Model.Paciente.Id" />
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">Seleccione el Tratamiento</label>
+                        <select name="tratamientoId" class="form-select" asp-items="ViewBag.CatalogoTratamientos" required>
+                            <option value="">-- Seleccione una opción --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalNuevoMedicamento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="AgregarMedicamento" method="post">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-capsule"></i> Recetar Medicamento</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="pacienteId" value="@Model.Paciente.Id" />
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">Seleccione el Medicamento</label>
+                        <select name="medicamentoId" class="form-select" asp-items="ViewBag.CatalogoMedicamentos" required>
+                            <option value="">-- Seleccione una opción --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalSubirArchivo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="SubirExamen" method="post" enctype="multipart/form-data">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-file-earmark-medical"></i> Subir Examen Médico</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="pacienteId" value="@Model.Paciente.Id" />
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">Descripción del Documento</label>
+                        <input type="text" name="descripcion" class="form-control" required placeholder="Ej. Radiografía de tórax..." />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">Seleccione el Archivo (PDF, JPG, PNG)</label>
+                        <input type="file" name="archivo" class="form-control" accept=".pdf, .jpg, .jpeg, .png" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Subir Archivo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+       
+        tinymce.init({
+            selector: '#editorNotas',
+            plugins: 'lists link table charmap',
+            toolbar: 'undo redo | bold italic underline | bullist numlist | table',
+            menubar: false,
+            language: 'es_MX',
+            setup: function (editor) {
+                editor.on('change', function () {
+                    editor.save();
+                });
+            }
+        });
+
+        @if (TempData["Success"] != null)
+        {
+                <text>
+                Swal.fire({
+                    title: "¡Exito!",
+                    text: "@TempData["Success"]",
+                    icon: "success",
+                    draggable: true
+                });
+                </text>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+                <text>
+                Swal.fire({
+                    title: "¡Atención!",
+                    text: "@TempData["Error"]",
+                    icon: "warning",
+                    draggable: true
+                });
+                </text>
+        }
+
+
+        document.querySelectorAll('.btn-suspender').forEach(button => {
+            button.addEventListener('click', function (e) {
+                e.preventDefault();
+                const form = this.closest('form');
+
+                Swal.fire({
+                    title: "¿Estas seguro?",
+                    text: "No podras revertir esto. El registro sera suspendido del expediente",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#6c757d",
+                    confirmButtonText: "Si, suspenderlo",
+                    cancelButtonText: "Cancelar",
+                    draggable: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit(); 
+                    }
+                });
+            });
+        });
+    </script>
+}
