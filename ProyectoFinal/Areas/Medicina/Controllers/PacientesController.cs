@@ -1,14 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using ProyectoFinal.Models;
 using ProyectoFinal.Models.ViewModels;
 using ProyectoFinal.Repository;
-using System;
-using System.IO;
-using System.Linq;
 using System.Security.Claims;
 
 namespace ProyectoFinal.Areas.Medicina.Controllers
@@ -20,7 +15,7 @@ namespace ProyectoFinal.Areas.Medicina.Controllers
         private readonly IUnidadTrabajo _unidadTrabajo;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        // Inyectamos IWebHostEnvironment para poder guardar los archivos físicos en el servidor (wwwroot)
+
         public PacientesController(IUnidadTrabajo unidadTrabajo, IWebHostEnvironment webHostEnvironment)
         {
             _unidadTrabajo = unidadTrabajo;
@@ -33,7 +28,7 @@ namespace ProyectoFinal.Areas.Medicina.Controllers
             // todos los pacientes
             var pacientes = _unidadTrabajo.Paciente.GetAll();
 
-            // búsqueda
+            // busqueda
             if (!string.IsNullOrEmpty(busqueda))
             {
                 busqueda = busqueda.ToLower();
@@ -43,7 +38,7 @@ namespace ProyectoFinal.Areas.Medicina.Controllers
                     p.Cedula.ToLower().Contains(busqueda));
             }
 
-            // Ordenamiento última fecha de atención, más reciente a menos reciente
+            // Ordenamiento ultima fecha de atencion, mas reciente a menos reciente
             pacientes = pacientes.OrderByDescending(p => p.FechaUltimaAtencion).ToList();
 
             return View(pacientes);
@@ -65,7 +60,6 @@ namespace ProyectoFinal.Areas.Medicina.Controllers
 
                 Archivos = _unidadTrabajo.ArchivoExpediente.GetAll(a => a.PacienteId == id).OrderByDescending(a => a.FechaSubida),
 
-                // Traemos solo los registros activos para mostrar en las tablas principales o manejarlos en la vista
                 Padecimientos = _unidadTrabajo.PacientePadecimiento.GetAll(p => p.PacienteId == id, includeProperties: "Padecimiento"),
 
                 Tratamientos = _unidadTrabajo.PacienteTratamiento.GetAll(t => t.PacienteId == id, includeProperties: "Tratamiento"),
@@ -73,7 +67,6 @@ namespace ProyectoFinal.Areas.Medicina.Controllers
                 Medicamentos = _unidadTrabajo.PacienteMedicamento.GetAll(m => m.PacienteId == id, includeProperties: "Medicamento")
             };
 
-            // Llenamos los catálogos para los menús desplegables (dropdowns) de los modales
             ViewBag.CatalogoPadecimientos = new SelectList(_unidadTrabajo.Padecimiento.GetAll(), "Id", "Nombre");
             ViewBag.CatalogoTratamientos = new SelectList(_unidadTrabajo.Tratamiento.GetAll(), "Id", "Nombre");
             ViewBag.CatalogoMedicamentos = new SelectList(_unidadTrabajo.Medicamento.GetAll(), "Id", "Nombre");
@@ -122,7 +115,7 @@ namespace ProyectoFinal.Areas.Medicina.Controllers
                 PadecimientoId = padecimientoId,
                 FechaDiagnostico = DateTime.Now,
                 Activo = true,
-                MedicoId = medicoId // Se incluye el id del médico según requerimiento F.IV
+                MedicoId = medicoId 
             };
 
             _unidadTrabajo.PacientePadecimiento.Add(nuevoPad);
