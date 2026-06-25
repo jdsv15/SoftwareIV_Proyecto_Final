@@ -10,11 +10,8 @@ import '../models/historial_model.dart';
 
 class ApiService {
   
-static const String baseUrl =                               // Version Emulador
-    'http://10.0.2.2:5298/api/mobile/paciente';
-
-    //static const String baseUrl =                         // Version Cable
-    //'http://127.0.0.1:5298/api/mobile/paciente';
+static const String baseUrl =
+    'http://proyectofinalsoftware.runasp.net/api/mobile/paciente';
     
 
   Future<List<PadecimientoModel>> obtenerPadecimientos(

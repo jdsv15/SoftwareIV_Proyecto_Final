@@ -6,17 +6,27 @@ using ProyectoFinal.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuración de la conexión a SQL Server
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// Configuración de Identity usando ApplicationUser
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
 builder.Services.AddScoped<IUnidadTrabajo, UnidadTrabajo>();
+
+// Configuración de CORS para permitir consumo desde la app móvil o Flutter Web
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("PermitirApiMobile", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 
@@ -29,13 +39,19 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+
 app.UseRouting();
+
+app.UseCors("PermitirApiMobile");
 
 // Seguridad Autenticacion
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
+
+app.MapControllers();
 
 // Ruteo para las Áreas
 app.MapAreaControllerRoute(
@@ -52,7 +68,6 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Inicializacion y Semillero de Datos (Seeding)
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -60,6 +75,7 @@ using (var scope = app.Services.CreateScope())
 
     // Roles
     string[] roles = { "Administrador", "Medico", "Paciente" };
+
     foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))
@@ -76,8 +92,8 @@ using (var scope = app.Services.CreateScope())
         {
             UserName = adminEmail,
             Email = adminEmail,
-            Nombre = "Admin", 
-            Cedula = "1",               
+            Nombre = "Admin",
+            Cedula = "1",
             Rol = "Administrador",
             EmailConfirmed = true
         };
