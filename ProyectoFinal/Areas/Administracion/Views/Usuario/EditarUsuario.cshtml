@@ -1,0 +1,53 @@
+﻿@model ProyectoFinal.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Editar Usuario";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h2 class="text-primary fw-bold">Editar Usuario</h2>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-area="Administracion" asp-controller="Usuario" asp-action="EditarUsuario" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Cedula" class="form-label"></label>
+                                <input asp-for="Cedula" class="form-control" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Nombre" class="form-label"></label>
+                                <input asp-for="Nombre" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Rol</label>
+                            <select name="userRole" class="form-select">
+                                @foreach (var role in ViewBag.RoleList)
+                                {
+                                    <option value="@role.Name" selected="@(role.Name == ViewBag.CurrentRole)">@role.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-success px-4">Guardar Cambios</button>
+                        <a asp-area="Administracion" asp-controller="Usuario" asp-action="Index" class="btn btn-outline-secondary px-4">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
